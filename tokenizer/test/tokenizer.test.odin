@@ -69,3 +69,28 @@ test_get_prev :: proc(t: ^testing.T) {
 	testing.expect_value(t, src.get_prev(tok), '😀')
 }
 
+@(test)
+test_move_to :: proc(t: ^testing.T) {
+	tok := src.create_tokenizer("a😀c")
+	
+	src.move_to(&tok, 1) // Move to '😀'
+	testing.expect_value(t, tok.current, '😀')
+	testing.expect_value(t, tok.index, 1)
+	testing.expect_value(t, tok.width, 4)
+
+	src.move_to(&tok, 0) // Move to 'a'
+	testing.expect_value(t, tok.current, 'a')
+	testing.expect_value(t, tok.index, 0)
+	testing.expect_value(t, tok.width, 1)
+
+	src.move_to(&tok, 5) // Move to 'c'
+	testing.expect_value(t, tok.current, 'c')
+	testing.expect_value(t, tok.index, 5)
+	testing.expect_value(t, tok.width, 1)
+
+	src.move_to(&tok, 6) // EOF
+	testing.expect_value(t, tok.current, utf8.RUNE_EOF)
+	testing.expect_value(t, tok.index, 6)
+	testing.expect_value(t, tok.width, 0)
+}
+

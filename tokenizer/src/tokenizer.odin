@@ -58,6 +58,16 @@ get_value :: proc(t: Tokenizer, token: Token) -> string {
 	return t.source[token.x:token.y]
 }
 
+move_to :: proc(t: ^Tokenizer, index: int) {
+	if index >= len(t.source) {
+		t.index = len(t.source)
+		t.current = utf8.RUNE_EOF
+		t.width = 0
+	} else {
+		t.index = index
+		t.current, t.width = utf8.decode_rune_in_string(t.source[t.index:])
+	}
+}
 
 is_eof :: proc(t: Tokenizer) -> bool {
 	return t.current == utf8.RUNE_EOF
