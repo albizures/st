@@ -23,3 +23,4 @@ rollback :: proc {
 is_eof :: src.is_eof
 get_value :: src.get_value
 get_prev :: src.get_prev
+move_to :: src.move_to

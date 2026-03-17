@@ -3,42 +3,85 @@ package lines_core
 import "../../pos"
 import tok "../../tokenizer"
 
-Marker_Lines_Options :: struct {
+Span_Lines_Options :: struct {
 	before: int,
 	after:  int,
 }
 
-default_marker_lines_options: Marker_Lines_Options : {before = 1, after = 1}
+default_span_lines_options: Span_Lines_Options : {before = 1, after = 1}
 
 // by given a span the procedure returns lines where the span is.
 // optionally if given options it can return some lines before or after the span.
-get_marker_lines :: proc(
+get_span_lines :: proc(
 	source: string,
 	span: pos.Span,
-	options: Marker_Lines_Options = default_marker_lines_options,
+	options: Span_Lines_Options = default_span_lines_options,
 	allocator := context.allocator,
 ) -> [dynamic]Line {
 	result := make([dynamic]Line, allocator)
 
-	t := create_tokenizer(source)
-
-	for !tok.is_eof(t) {
-		if t.index >= span.x {
-			if t.index <= span.y {
-				break
-			} else {
-				start := t.index
-				line, err := advance(&t)
-				if err != .None {
-					break
-				}
-				append(&result, line)
-			}
-		} else {
-			advance(&t)
+	t_start := create_tokenizer(source)
+	for {
+		line, err := advance(&t_start)
+		if err != .None {
+			break
+		}
+		if span.x >= line.span.x && span.x <= line.span.y {
+			rollback(&t_start)
+			break
 		}
 	}
 
+	t_end := create_tokenizer(source)
+	for {
+		line, err := advance(&t_end)
+		if err != .None {
+			break
+		}
+		if span.y >= line.span.x && span.y <= line.span.y {
+			rollback(&t_end)
+			break
+		}
+	}
+
+	for i in 0 ..< options.before {
+		_, err := rollback(&t_start)
+		if err != .None {
+			break
+		}
+	}
+
+	for i in 0 ..< (1 + options.after) {
+		_, err := advance(&t_end)
+		if err != .None {
+			break
+		}
+	}
+
+	for {
+		if t_start.index >= t_end.index {
+			break
+		}
+
+		line, err := advance(&t_start)
+		if err == .None {
+			append(&result, line)
+		} else {
+			break
+		}
+	}
 
 	return result
+}
+
+
+move_to_start_of_line :: proc(t: ^Tokenizer) {
+	if !is_start_of_line(t) {
+		for {
+			if t.index == 0 || tok.get_prev(t) == '\n' {
+				break
+			}
+			tok.rollback(t)
+		}
+	}
 }
