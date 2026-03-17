@@ -20,6 +20,7 @@ get_span_lines :: proc(
 ) -> [dynamic]Line {
 	result := make([dynamic]Line, allocator)
 
+	// 1. first we go the start or end of the span
 	t_start := create_tokenizer(source)
 	for {
 		line, err := advance(&t_start)
@@ -32,7 +33,7 @@ get_span_lines :: proc(
 		}
 	}
 
-	t_end := create_tokenizer(source)
+	t_end := t_start
 	for {
 		line, err := advance(&t_end)
 		if err != .None {
@@ -44,6 +45,7 @@ get_span_lines :: proc(
 		}
 	}
 
+	// 2. then we rollback/advance to the lines before or after the span
 	for i in 0 ..< options.before {
 		_, err := rollback(&t_start)
 		if err != .None {
@@ -58,6 +60,7 @@ get_span_lines :: proc(
 		}
 	}
 
+	// 3. then we collect the lines between the start and end tokens
 	for {
 		if t_start.index >= t_end.index {
 			break
