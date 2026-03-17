@@ -54,8 +54,12 @@ rollback_rune :: proc(t: ^Tokenizer) {
 	t.index -= t.width
 }
 
-get_value :: proc(t: Tokenizer, token: Token) -> string {
+get_value_from_tokenizer :: proc(t: Tokenizer, token: pos.Span) -> string {
 	return t.source[token.x:token.y]
+}
+
+get_value_from_source :: proc(source: string, token: pos.Span) -> string {
+	return source[token.x:token.y]
 }
 
 move_to :: proc(t: ^Tokenizer, index: int) {

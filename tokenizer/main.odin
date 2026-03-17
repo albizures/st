@@ -21,6 +21,9 @@ rollback :: proc {
 	src.rollback_rune,
 }
 is_eof :: src.is_eof
-get_value :: src.get_value
+get_value :: proc {
+	src.get_value_from_tokenizer,
+	src.get_value_from_source,
+}
 get_prev :: src.get_prev
 move_to :: src.move_to
