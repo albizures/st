@@ -55,7 +55,7 @@ advance :: proc(t: ^Tokenizer) -> (line: Line, err: Line_Error) {
 	}
 
 	// if we are not at the start of a line, skip to the next newline
-	if t^.index != 0 && tok.get_prev(t) != '\n' {
+	if !is_start_of_line(t) {
 		for {
 			if tok.is_eof(t^) {
 				err = .Already_At_End
@@ -101,8 +101,8 @@ rollback :: proc(t: ^Tokenizer) -> (line: Line, err: Line_Error) {
 
 	end := -1
 
-	// rollback to the end of the previous line
-	for { 	// in this way we can support the tokenizer to in the middle of a line`
+	// rollback to the end of the current line
+	for { 	// in this way we can support the tokenizer to be in the middle of a line`
 		if t.current == '\n' {
 			end = t.index
 			tok.rollback(t)
@@ -118,11 +118,8 @@ rollback :: proc(t: ^Tokenizer) -> (line: Line, err: Line_Error) {
 	}
 
 	for {
-		if t.current == '\n' || t.index == 0 {
+		if is_start_of_line(t) {
 			t.line -= 1
-			if t.current == '\n' {
-				tok.advance(t) // advance the newline so it's not included
-			}
 
 			break
 		}
@@ -136,4 +133,8 @@ rollback :: proc(t: ^Tokenizer) -> (line: Line, err: Line_Error) {
 	}
 
 	return
+}
+
+is_start_of_line :: proc(t: ^Tokenizer) -> bool {
+	return t.index == 0 || tok.get_prev(t) == '\n'
 }

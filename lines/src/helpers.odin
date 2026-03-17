@@ -8,7 +8,6 @@ Marker_Lines_Options :: struct {
 	after:  int,
 }
 
-
 default_marker_lines_options: Marker_Lines_Options : {before = 1, after = 1}
 
 // by given a span the procedure returns lines where the span is.
