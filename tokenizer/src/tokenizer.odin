@@ -1,0 +1,74 @@
+package tokenizer_core
+
+import "../../pos"
+import "core:log"
+import "core:unicode/utf8"
+
+Tokenizer :: struct {
+	source:  string,
+	current: rune,
+	index:   int,
+	width:   int,
+}
+
+Kind :: distinct u32
+
+CUSTOM_OFFSET: Kind : 100
+
+Token :: struct {
+	using span: pos.Span,
+	kind:       Kind,
+}
+
+
+create_tokenizer :: proc(source: string) -> Tokenizer {
+	t := Tokenizer {
+		source = source,
+	}
+
+	advance_rune(&t)
+
+	return t
+}
+
+advance_rune :: proc(t: ^Tokenizer) -> rune #no_bounds_check {
+	if t.index >= len(t.source) {
+		t.current = utf8.RUNE_EOF
+		t.index = len(t.source)
+	} else {
+		t.index += t.width
+		t.current, t.width = utf8.decode_rune_in_string(t.source[t.index:])
+		if t.index >= len(t.source) {
+			t.current = utf8.RUNE_EOF
+		}
+	}
+	return t.current
+}
+
+rollback_rune :: proc(t: ^Tokenizer) {
+	if t.index == 0 {
+		return
+	}
+
+	t.current, t.width = utf8.decode_last_rune(t.source[:t.index])
+	t.index -= t.width
+}
+
+get_value :: proc(t: Tokenizer, token: Token) -> string {
+	return t.source[token.x:token.y]
+}
+
+
+is_eof :: proc(t: Tokenizer) -> bool {
+	return t.current == utf8.RUNE_EOF
+}
+
+get_prev :: proc(t: Tokenizer) -> rune {
+	if t.index == 0 {
+		return utf8.RUNE_EOF
+	}
+
+	r, _ := utf8.decode_last_rune(t.source[:t.index])
+
+	return r
+}
