@@ -39,6 +39,19 @@ test_move_to_start_of_line :: proc(t: ^testing.T) {
 }
 
 @(test)
+test_move_to :: proc(t: ^testing.T) {
+	source := "123\n456\n789\n"
+	to := src.create_tokenizer(source)
+
+	src.move_to(&to, 5)
+	testing.expect_value(t, to.index, 4)
+	
+	to2 := src.create_tokenizer(source)
+	src.move_to(&to2, 8)
+	testing.expect_value(t, to2.index, 8)
+}
+
+@(test)
 test_get_span_lines :: proc(t: ^testing.T) {
 	source := "1\n2\n3\n4\n5\n6\n7"
 	
@@ -46,7 +59,7 @@ test_get_span_lines :: proc(t: ^testing.T) {
 	// With 1 before and 1 after, we want lines "2", "3", "4", "5", "6"
 	span := pos.Span{4, 8}
 	
-	options := src.Span_Lines_Options{
+	options := src.Span_Lines_Opts{
 		before = 1,
 		after = 1,
 	}
@@ -68,7 +81,7 @@ test_get_span_lines_bounds :: proc(t: ^testing.T) {
 	source := "1\n2\n3"
 	span := pos.Span{2, 2} // At '2' (line index 1)
 	
-	options := src.Span_Lines_Options{
+	options := src.Span_Lines_Opts{
 		before = 5, // more than available
 		after = 5,  // more than available
 	}

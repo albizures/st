@@ -3,57 +3,39 @@ package lines_core
 import "../../pos"
 import tok "../../tokenizer"
 
-Span_Lines_Options :: struct {
+Span_Lines_Opts :: struct {
 	before: int,
 	after:  int,
 }
 
-default_span_lines_options: Span_Lines_Options : {before = 1, after = 1}
+default_span_lines_opts: Span_Lines_Opts : {before = 1, after = 1}
 
 // by given a span the procedure returns lines where the span is.
 // optionally if given options it can return some lines before or after the span.
 get_span_lines :: proc(
 	source: string,
 	span: pos.Span,
-	options: Span_Lines_Options = default_span_lines_options,
+	opts: Span_Lines_Opts = default_span_lines_opts,
 	allocator := context.allocator,
 ) -> [dynamic]Line {
 	result := make([dynamic]Line, allocator)
 
 	// 1. first we go the start or end of the span
 	t_start := create_tokenizer(source)
-	for {
-		line, err := advance(&t_start)
-		if err != .None {
-			break
-		}
-		if span.x >= line.span.x && span.x <= line.span.y {
-			rollback(&t_start)
-			break
-		}
-	}
+	move_to(&t_start, span.x)
 
 	t_end := t_start
-	for {
-		line, err := advance(&t_end)
-		if err != .None {
-			break
-		}
-		if span.y >= line.span.x && span.y <= line.span.y {
-			rollback(&t_end)
-			break
-		}
-	}
+	move_to(&t_end, span.y)
 
 	// 2. then we rollback/advance to the lines before or after the span
-	for i in 0 ..< options.before {
+	for i in 0 ..< opts.before {
 		_, err := rollback(&t_start)
 		if err != .None {
 			break
 		}
 	}
 
-	for i in 0 ..< (1 + options.after) {
+	for i in 0 ..< (1 + opts.after) {
 		_, err := advance(&t_end)
 		if err != .None {
 			break
@@ -85,6 +67,19 @@ move_to_start_of_line :: proc(t: ^Tokenizer) {
 				break
 			}
 			tok.rollback(t)
+		}
+	}
+}
+
+move_to :: proc(t: ^Tokenizer, offset: int) {
+	for {
+		line, err := advance(t)
+		if err != .None {
+			break
+		}
+		if offset >= line.span.x && offset <= line.span.y {
+			rollback(t)
+			break
 		}
 	}
 }
