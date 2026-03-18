@@ -100,7 +100,7 @@ test_get_span_lines_bounds :: proc(t: ^testing.T) {
 
 
 @(test)
-test_highline_span :: proc(t: ^testing.T) {
+test_highlight_span :: proc(t: ^testing.T) {
 	source := fmt.tprintln(
 		"ab", //
 		"bc",
