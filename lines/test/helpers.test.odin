@@ -129,3 +129,100 @@ test_highlight_span :: proc(t: ^testing.T) {
 
 	testing.expect_value(t, lines, expected)
 }
+
+@(test)
+test_highlight_span_single_line :: proc(t: ^testing.T) {
+	source := "abcde\nfghij\nklmno\n"
+	span := pos.Span{7, 9} // "gh"
+
+	lines := src.highlight_span(source, span)
+	defer delete(lines)
+	defer free_all(context.temp_allocator)
+
+	expected := fmt.tprintln(
+		"   1│ abcde",
+		" > 2│ fghij",
+		"    │  ^^  ",
+		"   3│ klmno",
+		sep = "\n",
+	)
+
+	testing.expect_value(t, lines, expected)
+}
+
+@(test)
+test_highlight_span_single_char :: proc(t: ^testing.T) {
+	source := "abcde\nfghij\nklmno\n"
+	span := pos.Span{8, 9} // "h"
+
+	lines := src.highlight_span(source, span)
+	defer delete(lines)
+	defer free_all(context.temp_allocator)
+
+	expected := fmt.tprintln(
+		"   1│ abcde",
+		" > 2│ fghij",
+		"    │   ^  ",
+		"   3│ klmno",
+		sep = "\n",
+	)
+
+	testing.expect_value(t, lines, expected)
+}
+
+@(test)
+test_highlight_span_out_of_bounds :: proc(t: ^testing.T) {
+	source := "abcde\n"
+	span := pos.Span{10, 12} // Out of bounds
+
+	lines := src.highlight_span(source, span)
+	defer delete(lines)
+	defer free_all(context.temp_allocator)
+
+	expected := fmt.tprintln(
+		"   1│ abcde",
+		sep = "\n",
+	)
+
+	testing.expect_value(t, lines, expected)
+}
+
+@(test)
+test_highlight_span_empty :: proc(t: ^testing.T) {
+	source := "abcde\n"
+	span := pos.Span{2, 2}
+
+	lines := src.highlight_span(source, span)
+	defer delete(lines)
+	defer free_all(context.temp_allocator)
+
+	expected := fmt.tprintln(
+		" > 1│ abcde",
+		"    │      ",
+		sep = "\n",
+	)
+
+	testing.expect_value(t, lines, expected)
+}
+
+@(test)
+test_highlight_span_multiple_lines :: proc(t: ^testing.T) {
+	source := "ab\ncd\nef\n"
+	span := pos.Span{1, 7} // b, \n, c, d, \n, e
+
+	lines := src.highlight_span(source, span)
+	defer delete(lines)
+	defer free_all(context.temp_allocator)
+
+	expected := fmt.tprintln(
+		" > 1│ ab",
+		"    │  ^",
+		" > 2│ cd",
+		"    │ ^^",
+		" > 3│ ef",
+		"    │ ^ ",
+		sep = "\n",
+	)
+
+	testing.expect_value(t, lines, expected)
+}
