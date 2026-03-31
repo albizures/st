@@ -13,9 +13,8 @@ Visitor_Kind :: enum {
 }
 
 Visitor_State :: struct {
-	parent:  Parent,
-	index:   int,
-	visited: bool,
+	parent: Parent,
+	index:  int,
 }
 
 Visitor :: struct {
@@ -28,15 +27,15 @@ Visitor :: struct {
 	reverse:   bool,
 }
 
-create_visitor :: proc(tree: Tree, kind: Visitor_Kind, allocator := context.allocator) -> Visitor {
+create_visitor :: proc(tree: Tree, kind: Visitor_Kind, reverse := false, allocator := context.allocator) -> Visitor {
 	v := Visitor {
 		allocator = allocator,
 		tree      = tree,
 		path      = make([dynamic]Visitor_State, allocator),
 		level     = 0,
 		kind      = kind,
+		reverse   = reverse,
 	}
-	append(&v.path, Visitor_State{parent = tree.root, index = 0, visited = false})
 	return v
 }
 
@@ -57,18 +56,24 @@ next :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 
 next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 	if len(v.path) == 0 {
+		if v.level == 0 {
+			append(
+				&v.path,
+				Visitor_State {
+					parent = v.tree.root,
+					index = v.reverse ? len(v.tree.root.children) - 1 : 0,
+				},
+			)
+			ok = true
+			node = to_node(v.tree.root)
+			return
+		}
+
 		ok = false
 		return
 	}
 
 	state := &v.path[len(v.path) - 1]
-
-	if !state.visited {
-		state.visited = true
-		ok = true
-		node = to_node(state.parent)
-		return node, ok
-	}
 
 	if state.index >= len(state.parent.children) || (v.reverse && state.index < 0) {
 		// we need to backtrack
@@ -88,14 +93,7 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 
 	switch cur in current {
 	case Parent:
-		append(
-			&v.path,
-			Visitor_State {
-				parent = cur,
-				index = v.reverse ? len(cur.children) - 1 : 0,
-				visited = true,
-			},
-		)
+		append(&v.path, Visitor_State{parent = cur, index = v.reverse ? len(cur.children) - 1 : 0})
 		v.level += 1
 		ok = true
 		node = to_node(current)
