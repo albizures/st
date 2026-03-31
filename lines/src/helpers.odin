@@ -1,6 +1,6 @@
 package lines_core
 
-import "../../pos"
+import "../../st"
 import tok "../../tokenizer"
 import "core:fmt"
 import "core:log"
@@ -17,12 +17,12 @@ default_span_lines_opts: Span_Lines_Opts : {before = 1, after = 1}
 // optionally if given options it can return some lines before or after the span.
 get_span_lines :: proc(
 	source: string,
-	span: pos.Span,
+	span: st.Span,
 	opts: Span_Lines_Opts = default_span_lines_opts,
 	allocator := context.allocator,
 ) -> (
 	result: [dynamic]Line,
-	result_span: pos.Span,
+	result_span: st.Span,
 ) {
 	result = make([dynamic]Line, allocator)
 
@@ -69,7 +69,7 @@ get_span_lines :: proc(
 }
 
 
-highlight_span :: proc(source: string, span: pos.Span, allocator := context.allocator) -> string {
+highlight_span :: proc(source: string, span: st.Span, allocator := context.allocator) -> string {
 	b := strings.builder_make(context.temp_allocator)
 	defer strings.builder_destroy(&b)
 	lines, lines_span := get_span_lines(
@@ -102,7 +102,7 @@ highlight_span :: proc(source: string, span: pos.Span, allocator := context.allo
 	return strings.clone(strings.to_string(b), allocator)
 }
 
-is_within_span :: proc(span: pos.Span, offset: int) -> bool {
+is_within_span :: proc(span: st.Span, offset: int) -> bool {
 	return offset >= span.x && offset < span.y
 }
 

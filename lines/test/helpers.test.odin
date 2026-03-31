@@ -1,6 +1,6 @@
 package lines_test
 
-import "../../pos"
+import "../../st"
 import tok "../../tokenizer"
 import "../src"
 import "core:fmt"
@@ -58,7 +58,7 @@ test_get_span_lines :: proc(t: ^testing.T) {
 
 	// Span from '3' (index 4) to '5' (index 8)
 	// With 1 before and 1 after, we want lines "2", "3", "4", "5", "6"
-	span := pos.Span{4, 8}
+	span := st.Span{4, 8}
 
 	options := src.Span_Lines_Opts {
 		before = 1,
@@ -80,7 +80,7 @@ test_get_span_lines :: proc(t: ^testing.T) {
 @(test)
 test_get_span_lines_bounds :: proc(t: ^testing.T) {
 	source := "1\n2\n3"
-	span := pos.Span{2, 2} // At '2' (line index 1)
+	span := st.Span{2, 2} // At '2' (line index 1)
 
 	options := src.Span_Lines_Opts {
 		before = 5, // more than available
@@ -111,7 +111,7 @@ test_highlight_span :: proc(t: ^testing.T) {
 		"gh",
 		sep = "\n",
 	)
-	span := pos.Span{3, 7}
+	span := st.Span{3, 7}
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)
@@ -133,7 +133,7 @@ test_highlight_span :: proc(t: ^testing.T) {
 @(test)
 test_highlight_span_single_line :: proc(t: ^testing.T) {
 	source := "abcde\nfghij\nklmno\n"
-	span := pos.Span{7, 9} // "gh"
+	span := st.Span{7, 9} // "gh"
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)
@@ -153,7 +153,7 @@ test_highlight_span_single_line :: proc(t: ^testing.T) {
 @(test)
 test_highlight_span_single_char :: proc(t: ^testing.T) {
 	source := "abcde\nfghij\nklmno\n"
-	span := pos.Span{8, 9} // "h"
+	span := st.Span{8, 9} // "h"
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)
@@ -173,16 +173,13 @@ test_highlight_span_single_char :: proc(t: ^testing.T) {
 @(test)
 test_highlight_span_out_of_bounds :: proc(t: ^testing.T) {
 	source := "abcde\n"
-	span := pos.Span{10, 12} // Out of bounds
+	span := st.Span{10, 12} // Out of bounds
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)
 	defer free_all(context.temp_allocator)
 
-	expected := fmt.tprintln(
-		"   1│ abcde",
-		sep = "\n",
-	)
+	expected := fmt.tprintln("   1│ abcde", sep = "\n")
 
 	testing.expect_value(t, lines, expected)
 }
@@ -190,17 +187,13 @@ test_highlight_span_out_of_bounds :: proc(t: ^testing.T) {
 @(test)
 test_highlight_span_empty :: proc(t: ^testing.T) {
 	source := "abcde\n"
-	span := pos.Span{2, 2}
+	span := st.Span{2, 2}
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)
 	defer free_all(context.temp_allocator)
 
-	expected := fmt.tprintln(
-		" > 1│ abcde",
-		"    │      ",
-		sep = "\n",
-	)
+	expected := fmt.tprintln(" > 1│ abcde", "    │      ", sep = "\n")
 
 	testing.expect_value(t, lines, expected)
 }
@@ -208,7 +201,7 @@ test_highlight_span_empty :: proc(t: ^testing.T) {
 @(test)
 test_highlight_span_multiple_lines :: proc(t: ^testing.T) {
 	source := "ab\ncd\nef\n"
-	span := pos.Span{1, 7} // b, \n, c, d, \n, e
+	span := st.Span{1, 7} // b, \n, c, d, \n, e
 
 	lines := src.highlight_span(source, span)
 	defer delete(lines)

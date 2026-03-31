@@ -1,6 +1,6 @@
 package lines_core
 
-import "../../pos"
+import "../../st"
 import tok "../../tokenizer"
 import "core:log"
 
@@ -12,7 +12,7 @@ Line_Error :: enum {
 }
 
 Line :: struct {
-	using span: pos.Span,
+	using span: st.Span,
 	index:      int,
 }
 

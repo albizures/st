@@ -1,4 +1,4 @@
-package pos_core
+package st_src
 
 // [start, end]
 Span :: [2]int
@@ -18,4 +18,9 @@ get_content_from_loc :: proc(source: string, loc: Loc) -> string {
 
 get_content_from_span :: proc(source: string, span: Span) -> string {
 	return source[span.x:span.y]
+}
+
+get_content :: proc {
+	get_content_from_loc,
+	get_content_from_span,
 }

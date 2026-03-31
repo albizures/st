@@ -1,6 +1,6 @@
 package tokenizer_core
 
-import "../../pos"
+import "../../st"
 import "core:log"
 import "core:unicode/utf8"
 
@@ -16,7 +16,7 @@ Kind :: distinct u32
 CUSTOM_OFFSET: Kind : 100
 
 Token :: struct {
-	using span: pos.Span,
+	using span: st.Span,
 	kind:       Kind,
 }
 
@@ -54,11 +54,11 @@ rollback_rune :: proc(t: ^Tokenizer) {
 	t.index -= t.width
 }
 
-get_value_from_tokenizer :: proc(t: Tokenizer, token: pos.Span) -> string {
+get_value_from_tokenizer :: proc(t: Tokenizer, token: st.Span) -> string {
 	return t.source[token.x:token.y]
 }
 
-get_value_from_source :: proc(source: string, token: pos.Span) -> string {
+get_value_from_source :: proc(source: string, token: st.Span) -> string {
 	return source[token.x:token.y]
 }
 
