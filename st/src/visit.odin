@@ -3,6 +3,12 @@ package st_src
 import "core:mem"
 import "core:slice"
 
+Visitor_Next_Type :: enum {
+	Invalid,
+	Parent,
+	Child,
+}
+
 Visitor_Test :: union {
 	Kind_Test,
 	Node_Test,
@@ -27,7 +33,17 @@ Visitor :: struct {
 	reverse:   bool,
 }
 
-create_visitor :: proc(tree: Tree, kind: Visitor_Kind, reverse := false, allocator := context.allocator) -> Visitor {
+create_visitor :: proc {
+	create_visitor_simple,
+	create_visitor_with_test,
+}
+
+create_visitor_simple :: proc(
+	tree: Tree,
+	kind: Visitor_Kind,
+	reverse := false,
+	allocator := context.allocator,
+) -> Visitor {
 	v := Visitor {
 		allocator = allocator,
 		tree      = tree,
@@ -39,22 +55,74 @@ create_visitor :: proc(tree: Tree, kind: Visitor_Kind, reverse := false, allocat
 	return v
 }
 
+create_visitor_with_test :: proc(
+	tree: Tree,
+	test: Visitor_Test,
+	reverse := false,
+	allocator := context.allocator,
+) -> Visitor {
+	v := create_visitor_simple(tree, .Pre_Order, reverse, allocator)
+	v.test = test
+	return v
+}
+
 destroy_visitor :: proc(v: Visitor) {
 	delete(v.path)
 }
 
+next :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
+	// looping in case the test fails and we need to skip nodes
+	for {
+		switch v.kind {
+		case .Pre_Order:
+			node, type = next_pre_order(v)
+		}
 
-next :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
-	switch v.kind {
-	case .Pre_Order:
-		return next_pre_order(v)
+		if type == .Invalid {
+			return
+		}
+
+		if v.test != nil {
+			match := false
+			switch test in v.test {
+			case Kind_Test:
+				match = is(node, test)
+			case Node_Test:
+				parent_node: Node
+				idx: int
+				// Determine parent and index for Node_Test
+				// If we just appended to path (Parent), it's at len-2
+				// If we didn't (Node), it's at len-1
+				// Root has len=1 and level=0 right after being returned
+				if len(v.path) == 1 && v.level == 0 {
+					parent_node = to_node(v.tree.root)
+					idx = 0
+				} else {
+					state_idx := len(v.path) - 1
+					// If the node we just visited was a parent, we pushed a new state.
+					if type == .Parent {
+						state_idx -= 1
+					}
+
+					if state_idx >= 0 {
+						parent_node = to_node(v.path[state_idx].parent)
+						idx = v.path[state_idx].index - (v.reverse ? -1 : 1)
+					}
+				}
+				match = is(node, test, idx, parent_node)
+			}
+
+			if !match {
+				continue
+			}
+		}
+
+		return
 	}
-
-	ok = false
-	return
 }
 
-next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
+
+next_pre_order :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
 	if len(v.path) == 0 {
 		if v.level == 0 {
 			append(
@@ -64,12 +132,12 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 					index = v.reverse ? len(v.tree.root.children) - 1 : 0,
 				},
 			)
-			ok = true
+			type = .Parent
 			node = to_node(v.tree.root)
 			return
 		}
 
-		ok = false
+		type = .Invalid
 		return
 	}
 
@@ -80,7 +148,7 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 		pop(&v.path)
 		v.level -= 1
 		if len(v.path) == 0 {
-			ok = false
+			type = .Invalid
 			return
 		}
 
@@ -95,13 +163,13 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, ok: bool) {
 	case Parent:
 		append(&v.path, Visitor_State{parent = cur, index = v.reverse ? len(cur.children) - 1 : 0})
 		v.level += 1
-		ok = true
+		type = .Parent
 		node = to_node(current)
-		return node, ok
+		return
 	case Node:
-		ok = true
+		type = .Child
 		node = to_node(current)
-		return node, ok
+		return
 	}
 
 	return

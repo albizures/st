@@ -9,7 +9,6 @@ get_content :: src.get_content
 get_content_from_loc :: src.get_content_from_loc
 get_content_from_span :: src.get_content_from_span
 
-
 Node :: src.Node
 Node_Kind :: src.Node_Kind
 Plugin_Id :: src.Plugin_Id

@@ -1,5 +1,6 @@
 package st_src
 
+// [offset, kind]
 Kind_Test :: [2]Node_Kind
 Node_Test :: #type proc(node: Node, index: int, parent: Node) -> bool
 
