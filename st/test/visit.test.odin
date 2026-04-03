@@ -49,7 +49,7 @@ test_visitor_pre_order :: proc(t: ^testing.T) {
 	// The root itself IS visited, so the first node should be 1.
 
 	n: st.Node
-	type: st.Visitor_Next_Type
+	type: st.Visit_Result
 
 	n, type = st.next(&visitor)
 	testing.expect(t, type == .Parent)
@@ -68,7 +68,7 @@ test_visitor_pre_order :: proc(t: ^testing.T) {
 	testing.expect_value(t, n.kind, 4) // child_c
 
 	n, type = st.next(&visitor)
-	testing.expect(t, type == .Invalid)
+	testing.expect(t, type == .Done)
 }
 
 @(test)
@@ -100,14 +100,14 @@ test_visitor_with_test :: proc(t: ^testing.T) {
 	testing.expect(t, visitor.test == kind_test, "Visitor should have the test property set")
 
 	n: st.Node
-	type: st.Visitor_Next_Type
+	type: st.Visit_Result
 
 	n, type = st.next(&visitor)
 	testing.expect(t, type == .Child)
 	testing.expect_value(t, n.kind, 2)
 
 	n, type = st.next(&visitor)
-	testing.expect(t, type == .Invalid)
+	testing.expect(t, type == .Done)
 }
 
 
@@ -153,7 +153,7 @@ test_create_reverse_visitor :: proc(t: ^testing.T) {
 	defer st.destroy_visitor(visitor)
 
 	n: st.Node
-	type: st.Visitor_Next_Type
+	type: st.Visit_Result
 
 	n, type = st.next(&visitor)
 	testing.expect(t, type == .Parent)
@@ -172,5 +172,5 @@ test_create_reverse_visitor :: proc(t: ^testing.T) {
 	testing.expect_value(t, n.kind, 2) // child_a
 
 	n, type = st.next(&visitor)
-	testing.expect(t, type == .Invalid)
+	testing.expect(t, type == .Done)
 }

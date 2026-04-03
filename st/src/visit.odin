@@ -3,8 +3,8 @@ package st_src
 import "core:mem"
 import "core:slice"
 
-Visitor_Next_Type :: enum {
-	Invalid,
+Visit_Result :: enum {
+	Done,
 	Parent,
 	Child,
 }
@@ -70,7 +70,7 @@ destroy_visitor :: proc(v: Visitor) {
 	delete(v.path)
 }
 
-next :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
+next :: proc(v: ^Visitor) -> (node: Node, type: Visit_Result) {
 	// looping in case the test fails and we need to skip nodes
 	for {
 		switch v.kind {
@@ -78,7 +78,7 @@ next :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
 			node, type = next_pre_order(v)
 		}
 
-		if type == .Invalid {
+		if type == .Done {
 			return
 		}
 
@@ -122,7 +122,7 @@ next :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
 }
 
 
-next_pre_order :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
+next_pre_order :: proc(v: ^Visitor) -> (node: Node, type: Visit_Result) {
 	if len(v.path) == 0 {
 		if v.level == 0 {
 			append(
@@ -137,7 +137,7 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
 			return
 		}
 
-		type = .Invalid
+		type = .Done
 		return
 	}
 
@@ -148,7 +148,7 @@ next_pre_order :: proc(v: ^Visitor) -> (node: Node, type: Visitor_Next_Type) {
 		pop(&v.path)
 		v.level -= 1
 		if len(v.path) == 0 {
-			type = .Invalid
+			type = .Done
 			return
 		}
 
