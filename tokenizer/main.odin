@@ -3,11 +3,8 @@ package tokenizer
 import "src"
 
 
-CUSTOM_OFFSET :: src.CUSTOM_OFFSET
-
 // structs
 Tokenizer :: src.Tokenizer
-Kind :: src.Kind
 Token :: src.Token
 
 // procs
