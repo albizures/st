@@ -11,13 +11,8 @@ Tokenizer :: struct {
 	width:   int,
 }
 
-Kind :: distinct u32
-
-CUSTOM_OFFSET: Kind : 100
-
 Token :: struct {
 	using span: st.Span,
-	kind:       Kind,
 }
 
 create_tokenizer :: proc(source: string) -> Tokenizer {
