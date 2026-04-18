@@ -20,7 +20,6 @@ Token :: struct {
 	kind:       Kind,
 }
 
-
 create_tokenizer :: proc(source: string) -> Tokenizer {
 	t := Tokenizer {
 		source = source,
@@ -31,7 +30,7 @@ create_tokenizer :: proc(source: string) -> Tokenizer {
 	return t
 }
 
-advance_rune :: proc(t: ^Tokenizer) -> rune #no_bounds_check {
+advance_rune :: proc(t: ^Tokenizer) {
 	if t.index >= len(t.source) {
 		t.current = utf8.RUNE_EOF
 		t.index = len(t.source)
@@ -42,7 +41,6 @@ advance_rune :: proc(t: ^Tokenizer) -> rune #no_bounds_check {
 			t.current = utf8.RUNE_EOF
 		}
 	}
-	return t.current
 }
 
 rollback_rune :: proc(t: ^Tokenizer) {
